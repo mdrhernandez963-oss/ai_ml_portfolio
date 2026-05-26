@@ -60,7 +60,7 @@ README.md
 INSTALLATION & SETUP
 
 1. Clone repo:
-git clone https://github.com/mdrhernandez963-oss/Employment_AI-ML_Portfolio
+git clone https://github.com/mdrhernandez963-oss/ai_ml_portfolio
 cd ai-portfolio
 
 2. Create environment:

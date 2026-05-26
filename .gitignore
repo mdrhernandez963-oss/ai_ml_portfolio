@@ -1,0 +1,34 @@
+# --- Secrets ---
+.env
+.streamlit/secrets.toml
+
+# --- Kaggle credentials ---
+.kaggle/
+kaggle.json
+
+# --- Python cache ---
+__pycache__/
+*.py[cod]
+
+# --- Virtual environments ---
+venv/
+.venv/
+
+# --- OS junk ---
+.DS_Store
+Thumbs.db
+
+# --- Jupyter ---
+.ipynb_checkpoints/
+
+# --- Streamlit cache ---
+.streamlit/cache/
+
+# --- Logs ---
+*.log
+
+# --- NLP data ---
+nltk_data/
+
+# --- Datasets  ---
+data/

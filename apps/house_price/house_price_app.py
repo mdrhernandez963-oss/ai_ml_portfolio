@@ -20,11 +20,11 @@ st.set_page_config(
 # ------------------------------------------------------------
 @st.cache_resource
 def load_house_model():
-        model_path = os.path.join(
-        os.path.expanduser("~"),
-        "OneDrive",
-        "Documents",
-        "California_house_value_model.pk1"
+    model_path = os.path.join(
+    os.path.expanduser("~"),
+    "OneDrive",
+    "Documents",
+    "California_house_value_model.pk1"
     )
     return joblib.load(model_path)
 

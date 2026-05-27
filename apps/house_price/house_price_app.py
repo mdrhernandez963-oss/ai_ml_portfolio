@@ -20,14 +20,15 @@ st.set_page_config(
 # ------------------------------------------------------------
 @st.cache_resource
 def load_house_model():
-    model_path = os.path.join(
-    os.path.expanduser("~"),
-    "OneDrive",
-    "Maria - Personal",        
-    "Documents",
-    "California_house_value_model.pk1"
-    )
-    return joblib.load(model_path)
+
+    url = "https://huggingface.co/Maria123-ai/employment_models/tree/main/California_house_value_model.pk1"
+
+    response = requests.get(url)
+
+    with open("California_house_value_model.pk1", "wb") as f:
+        f.write(response.content)
+
+    return joblib.load("California_house_value_model.pk1")
 
 # ------------------------------------------------------------
 # Load ZIP code data

@@ -16,7 +16,7 @@ pillow==12.0.0
 requests
 python-dotenv
 
-google-generativeai==0.8.6
+google-geneai
 
 nltk==3.9.2
 

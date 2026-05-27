@@ -23,6 +23,7 @@ def load_house_model():
     model_path = os.path.join(
     os.path.expanduser("~"),
     "OneDrive",
+    "Maria - Personal",        
     "Documents",
     "California_house_value_model.pk1"
     )

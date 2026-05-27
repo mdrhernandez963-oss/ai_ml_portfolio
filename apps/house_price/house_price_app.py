@@ -21,7 +21,7 @@ st.set_page_config(
 @st.cache_resource
 def load_house_model():
 
-    url = "https://huggingface.co/Maria123-ai/california-house-model/resolve/main/California_house_value_model.pk1"
+    url = "https://huggingface.co/Maria123-ai/employment_models/resolve/main/California_house_value_model.pk1"
 
     response = requests.get(url)
 

@@ -34,15 +34,15 @@ def load_house_model():
 # ------------------------------------------------------------
 # Load ZIP code data
 # ------------------------------------------------------------
-# @st.cache_data
-#def load_zip_data():
-#    script_dir = os.path.dirname(os.path.abspath(__file__))
-#    zip_csv_path = os.path.join(
-#        script_dir, "..", "..", "data", "raw", "california_zip_lat_long_full.csv"
-#    )
-#    df = pd.read_csv(zip_csv_path)
-#    df["zip_display"] = df["zip"].astype(str) + " — " + df["city"]
-#    return df
+@st.cache_data
+def load_zip_data():
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    zip_csv_path = os.path.join(
+        script_dir, "..", "..", "data", "raw", "california_zip_lat_long_full.csv"
+    )
+    df = pd.read_csv(zip_csv_path)
+    df["zip_display"] = df["zip"].astype(str) + " — " + df["city"]
+    return df
 
 # ------------------------------------------------------------
 # Load error analysis artifacts

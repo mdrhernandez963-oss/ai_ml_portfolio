@@ -1,4 +1,5 @@
 streamlit==1.52.2
+streamlit-cropper
 pandas==2.3.3
 scikit-learn==1.7.2
 nltk==3.9.2

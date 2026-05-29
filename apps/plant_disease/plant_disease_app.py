@@ -1,7 +1,5 @@
 # apps/plant_disease/plant_disease_app.py
 
-# apps/plant_disease/plant_disease_app.py
-
 import sys
 from pathlib import Path
 import warnings
@@ -30,15 +28,6 @@ sys.path.append(str(ROOT_DIR))
 from apps.plant_disease.inference import model, transform, CLASS_NAMES, device
 
 # -------------------------
-# Optional cropper
-# -------------------------
-try:
-    from streamlit_cropper import st_cropper
-except ImportError:
-    st_cropper = None
-    st.warning("⚠️ Cropper not installed. Run: pip install streamlit-cropper")
-
-# -------------------------
 # Treatment recommendations
 # -------------------------
 RECOMMENDATIONS = {
@@ -63,7 +52,7 @@ def run():
     st.title("🌱 Plant Disease Prediction Demo")
 
     st.write(
-        "Upload a leaf image, optionally crop it, then click **Predict Disease**."
+        "Upload a leaf image and click **Predict Disease** to get results."
     )
 
     # -------------------------
@@ -77,22 +66,12 @@ def run():
     if uploaded_file is None:
         return
 
+    # -------------------------
+    # Load image safely
+    # -------------------------
     image = Image.open(uploaded_file).convert("RGB")
-    cropped_image = image
 
-    # -------------------------
-    # Optional cropping
-    # -------------------------
-    if st_cropper is not None:
-        if st.checkbox("✂️ Enable cropping"):
-            cropped_image = st_cropper(
-                image,
-                realtime_update=False,
-                box_color="#FF0000",
-                aspect_ratio=None
-            )
-
-    st.image(cropped_image, caption="Image used for prediction", width=400)
+    st.image(image, caption="Uploaded Image", width=400)
 
     # -------------------------
     # Prediction
@@ -100,24 +79,17 @@ def run():
     if st.button("Predict Disease"):
 
         # -------------------------
-        # SAFE IMAGE FIX BLOCK
+        # SAFE IMAGE HANDLING
         # -------------------------
-        if cropped_image is None:
-            st.error("No image available for prediction.")
+        try:
+            image_tensor = transform(image).unsqueeze(0).to(device)
+        except Exception as e:
+            st.error(f"Image preprocessing failed: {e}")
             st.stop()
-
-        # Convert numpy → PIL if needed
-        if isinstance(cropped_image, np.ndarray):
-            cropped_image = Image.fromarray(cropped_image)
-
-        # Ensure correct format
-        cropped_image = cropped_image.convert("RGB")
 
         # -------------------------
         # Model inference
         # -------------------------
-        image_tensor = transform(cropped_image).unsqueeze(0).to(device)
-
         model.eval()
         with torch.no_grad():
             outputs = model(image_tensor)

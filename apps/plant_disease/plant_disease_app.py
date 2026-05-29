@@ -9,17 +9,16 @@ from PIL import Image
 import torch
 import torch.nn.functional as F
 import pandas as pd
-import numpy as np
 
 # -------------------------
-# Silence warnings
+# Silence Streamlit warnings
 # -------------------------
 warnings.filterwarnings("ignore", category=DeprecationWarning)
 
 # -------------------------
 # Add project root to sys.path
 # -------------------------
-ROOT_DIR = Path(__file__).resolve().parent.parent.parent
+ROOT_DIR = Path(__file__).resolve().parent.parent.parent  # ai-portfolio
 sys.path.append(str(ROOT_DIR))
 
 # -------------------------
@@ -28,36 +27,45 @@ sys.path.append(str(ROOT_DIR))
 from apps.plant_disease.inference import model, transform, CLASS_NAMES, device
 
 # -------------------------
+# Optional cropper
+# -------------------------
+try:
+    from streamlit_cropper import st_cropper
+except ImportError:
+    st_cropper = None
+    st.warning("⚠️ Install cropper: pip install streamlit-cropper")
+
+# -------------------------
 # Treatment recommendations
 # -------------------------
 RECOMMENDATIONS = {
-    "Healthy": "No action needed. Keep monitoring.",
-    "Early_blight": "Remove infected leaves and apply chlorothalonil or copper fungicide.",
-    "Late_blight": "Remove infected leaves and apply mancozeb or copper fungicide.",
-    "Leaf Miner": "Use neem oil or insecticides and remove affected leaves.",
-    "Magnesium Deficiency": "Apply magnesium fertilizer or foliar spray.",
-    "Nitrogen Deficiency": "Apply nitrogen-rich fertilizer.",
-    "Pottassium Deficiency": "Apply potassium fertilizer and adjust soil pH.",
-    "Spotted Wilt Virus": "Remove infected plants and control thrips."
+    "Healthy": "No action needed. Keep monitoring. No disease exceeded the confidence threshold, so the leaf is classified as Healthy.",
+    "Early_blight": "Remove infected leaves and apply a fungicide containing chlorothalonil or copper.",
+    "Late_blight": "Remove infected leaves and apply a fungicide containing mancozeb or copper.",
+    "Leaf Miner": "Apply neem oil or insecticides targeting leaf miner larvae. Remove affected leaves.",
+    "Magnesium Deficiency": "Apply magnesium-containing fertilizers or foliar sprays.",
+    "Nitrogen Deficiency": "Apply nitrogen-rich fertilizers and monitor soil nutrient levels.",
+    "Pottassium Deficiency": "Apply potassium-containing fertilizers and maintain soil pH.",
+    "Spotted Wilt Virus": "Remove infected plants immediately and control thrips with insecticides or yellow sticky traps."
 }
 
-HEALTHY_THRESHOLD = 0.65
-
+# -------------------------
+# Confidence threshold
+# -------------------------
+HEALTHY_THRESHOLD = 0.65  # conservative default
 
 # -------------------------
 # Main app
 # -------------------------
 def run():
-
     st.title("🌱 Plant Disease Prediction Demo")
 
     st.write(
-        "Upload a leaf image and click **Predict Disease** to get results."
+        "Upload a leaf image, optionally crop the affected area, "
+        "and click **Predict Disease** to see the model output and confidence."
     )
 
-    # -------------------------
-    # Upload image
-    # -------------------------
+    # -------- Upload image --------
     uploaded_file = st.file_uploader(
         "Choose a leaf image",
         type=["jpg", "jpeg", "png"]
@@ -66,30 +74,25 @@ def run():
     if uploaded_file is None:
         return
 
-    # -------------------------
-    # Load image safely
-    # -------------------------
     image = Image.open(uploaded_file).convert("RGB")
+    cropped_image = image
 
-    st.image(image, caption="Uploaded Image", width=400)
+    # -------- Optional crop --------
+    if st_cropper is not None:
+        if st.checkbox("Optional.  ✂️ Crop image before prediction"):
+            cropped_image = st_cropper(
+                image,
+                realtime_update=False,
+                box_color="#FF0000",
+                aspect_ratio=None
+            )
 
-    # -------------------------
-    # Prediction
-    # -------------------------
+    st.image(cropped_image, caption="Image used for prediction", width=400)
+
+    # -------- Predict button --------
     if st.button("Predict Disease"):
+        image_tensor = transform(cropped_image).unsqueeze(0).to(device)
 
-        # -------------------------
-        # SAFE IMAGE HANDLING
-        # -------------------------
-        try:
-            image_tensor = transform(image).unsqueeze(0).to(device)
-        except Exception as e:
-            st.error(f"Image preprocessing failed: {e}")
-            st.stop()
-
-        # -------------------------
-        # Model inference
-        # -------------------------
         model.eval()
         with torch.no_grad():
             outputs = model(image_tensor)
@@ -97,9 +100,6 @@ def run():
 
         max_prob, pred_idx = torch.max(probs, dim=0)
 
-        # -------------------------
-        # Decision logic
-        # -------------------------
         if max_prob.item() < HEALTHY_THRESHOLD:
             pred_class = "Healthy"
         else:
@@ -110,15 +110,11 @@ def run():
             "No recommendation available."
         )
 
-        # -------------------------
-        # Results
-        # -------------------------
-        st.success(f"✅ Predicted Disease: **{pred_class}**")
-        st.info(f"💡 Recommendation: {treatment}")
+        # -------- Results --------
+        st.success(f"✅ Predicted Status: **{pred_class}**")
+        st.info(f"💡 Recommended Action: {treatment}")
 
-        # -------------------------
-        # Confidence chart
-        # -------------------------
+        # -------- Confidence bar chart --------
         st.subheader("🔍 Prediction Confidence")
 
         prob_df = pd.DataFrame({
@@ -128,13 +124,17 @@ def run():
 
         st.bar_chart(prob_df.set_index("Class"))
 
+        # -------- Optional numeric display --------
         st.caption(
-            f"Top confidence: **{max_prob.item():.2%}**"
+            f"Top prediction confidence: **{max_prob.item():.2%}** "
+            "(probabilities are model estimates, not guarantees)"
         )
 
 
 # -------------------------
-# Run app
+# Run standalone
 # -------------------------
 if __name__ == "__main__":
     run()
+
+

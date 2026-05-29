@@ -4,7 +4,7 @@ pandas==2.3.3
 scikit-learn==1.7.2
 nltk==3.9.2
 google-genai
-numpy==2.2.6
+numpy
 matplotlib==3.10.8
 seaborn==0.13.2
 joblib==1.5.2
